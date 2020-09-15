@@ -13,6 +13,7 @@ import threading
 import requests
 import time
 from sys import argv
+import configparser
 
 class ScanAngelReTweet:
 
@@ -78,8 +79,8 @@ class ScanAngelReTweet:
         for tUid in twitterUserIds:
             bot_score = self.dataStore.getBotScore(tUid)
             if bot_score == None:
-                result = self.bom.check_account(tUid)
-                bot_score = result['scores']['english']
+                result = self.bom.check_account(tUid)                
+                bot_score = result['cap']['english']
                 print(f'{tUid} - {bot_score}')
                 self.dataStore.saveBotScore({
                     'twitter_user_id' : tUid,
@@ -138,7 +139,8 @@ class ScanAngelReTweet:
             retweet_details = tweet_dict['retweet_details']
         if retweet_details == None:
             retweet_details = []
-        url = f'https://api.twitter.com/1.1/statuses/retweets/{tweet_id}.json?count=100&result_type=recent'        
+        url = f'https://api.twitter.com/1.1/statuses/retweets/{tweet_id}.json?count=100&result_type=recent'
+        print(f'Child tweets retweets url {url}')  
         contents = requests.get(url, headers=self.search_headers)
         jsonResponse = contents.json()
         
@@ -166,7 +168,8 @@ class ScanAngelReTweet:
                     if bot_score == None:
                         self.bot_score_ids.append(rTweet['user']["id_str"])
 
-        url = f'https://api.twitter.com/1.1/search/tweets.json?q={query} OR @{screen_name}&since_id={tweet_id}&count=100&result_type=recent'        
+        url = f'https://api.twitter.com/1.1/search/tweets.json?q={query} OR @{screen_name}&since_id={tweet_id}&count=100&result_type=recent&tweet_mode=extended'
+        print(f'Child tweets search url {url}')  
         contents = requests.get(url, headers=self.search_headers)
         jsonResponse = contents.json()
         
@@ -180,10 +183,11 @@ class ScanAngelReTweet:
                 engagementType = 'retweet'
                 processTweet = False
                 if 'is_quote_status' in rTweet:
-                    if rTweet['is_quote_status']:
-                        if rTweet['quoted_status_id_str'] == tweet_id:
-                            processTweet = True
-                            engagementType = 'retweet'
+                    if 'quoted_status_id_str' in rTweet:
+                        if rTweet['is_quote_status']:
+                            if rTweet['quoted_status_id_str'] == tweet_id:
+                                processTweet = True
+                                engagementType = 'retweet'
 
                 if 'in_reply_to_user_id_str' in rTweet:
                     if rTweet['in_reply_to_user_id_str'] == user_id:
@@ -222,8 +226,8 @@ class ScanAngelReTweet:
     def startTweetScan(self, tweet_id, user_id, screen_name, query):
         
         self.get_tweet_replys(tweet_id, screen_name, query)
-        url = f'https://api.twitter.com/1.1/search/tweets.json?q={query} OR @{screen_name}&since_id={tweet_id}&count=100&result_type=recent'
-        #print(f'main url {url}')
+        url = f'https://api.twitter.com/1.1/search/tweets.json?q={query} OR @{screen_name}&since_id={tweet_id}&count=100&result_type=recent&tweet_mode=extended'
+        print(f'main url {url}')
         contents = requests.get(url, headers=self.search_headers)
         jsonResponse = contents.json()
         angel_handles = []
@@ -236,9 +240,10 @@ class ScanAngelReTweet:
             engagementType = 'retweet'
             processTweet = False
             if rTweet['is_quote_status']:
-                if rTweet['quoted_status_id_str'] == tweet_id:
-                    processTweet = True
-                    engagementType = 'retweet'
+                if 'quoted_status_id_str' in rTweet:
+                    if rTweet['quoted_status_id_str'] == tweet_id:
+                        processTweet = True
+                        engagementType = 'retweet'
 
             if rTweet['in_reply_to_user_id_str'] == user_id:
                 processTweet = True
@@ -363,8 +368,8 @@ class ScanAngelReTweet:
                     sas = 0
                 bot_score = self.dataStore.getBotScore(rtd['retweet_user_id'])
                 if bot_score == None:
-                    bot_score = 1.6
-                if not (sas < 20 or bot_score > 1.5):
+                    bot_score = 0.70
+                if not (sas < 20 or bot_score > 0.70):
                     reward = reward + self.calculateRewards(sas)
                 countedIds.append(rtd['retweet_user_id'])
         return reward
@@ -375,7 +380,7 @@ class ScanAngelReTweet:
             angelProfile = tweet_dict
             twitter_handle = angelProfile['screen_name']
             twitter_user_id = angelProfile['twitter_id']            
-            bot_score = 1.6        
+            bot_score = 0.70
             sas = self.dataStore.getSAScore(twitter_handle)
             if sas == None:
                 sas = 0
@@ -432,12 +437,33 @@ class ScanAngelReTweet:
         self.updateBOTscore(self.bot_score_ids)
         self.calculateRewardsAndSave(tweet_id)
 
+def stopScript(tweet_id):
+    configFileName = 'script_runnint_time.config'
+    config = configparser.ConfigParser()
+    config.read(configFileName)
+    if config != None:
+        if tweet_id in config['DEFAULT']:
+            start_time = float(config.get('DEFAULT', tweet_id))
+            current_time = time.time()
+            duration = current_time - start_time
+            print(f'Duration {duration} in seconds')
+            if duration >= (48 * 60 * 60):
+                return True
+        else:
+            config['DEFAULT'] = {tweet_id: time.time()}
+            with open(configFileName, 'w') as configfile:
+                config.write(configfile)
+    return False
+
 scanTweet = ScanAngelReTweet()
 def repeatTweetScan():
     #scanTweet.process_tweet("1299747582021971968", "1296871334929211395", "vasilich_nick", "Test2 OR test2")
     if len(argv) == 4:
         scanTweet.process_tweet(argv[1], argv[2], argv[3])
-        threading.Timer(1000.0, repeatTweetScan).start()
+        if not stopScript(argv[1]):
+            threading.Timer(1000.0, repeatTweetScan).start()
+        else:
+            print('Stopping the script after 48 hours')
     else:
         print('Arguments are not valid please check the arguments ex: python3 hmy_angel_rewards.py 1299747582021971968 stse "augpow"')
 
@@ -446,4 +472,3 @@ def main(tArgs):
 
 if __name__ == '__main__':
     main(argv)
-
