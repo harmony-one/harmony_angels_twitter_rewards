@@ -14,6 +14,7 @@ import requests
 import time
 from sys import argv
 import configparser
+from datetime import datetime
 
 class ScanAngelReTweet:
 
@@ -59,7 +60,7 @@ class ScanAngelReTweet:
             'cb_cryptalk', 'danboyden', 'drop101001', 'alex_yatesalex', 'flicker05091469', 'alex_kretsch', 'yishuangc', 'minhdoan82', 'john_a_whitton', 'bwu2sfu', 'mattdlockyer', 'chaosma000', 'edgararout', 'harmonyyuyi', 
             'cem_fahli', 'vbieberin', 'nicolasburtey', 'ametaheuristic', 'astralblue', 'garlamwon', 'sarahn_harmony', 'manish0338', 'm_dansker', 'john_lamu', 'x_chickens', 'larissa_bean7', 'johnlamharmony', 'yongxinjzhou', 
             'renewwen', 'mindpop3', 'danboyden', 'drop101001', 'iscirlet', 'ibruno_marshall', 'sophoah', 'jb273_jurgen', 'yelllowsin', 'mindstyle85', 'mirrormirage0', 'sebastianj', 'yeiliowsin','wholesum', 'mr_vavilon', 
-            'HarmonyValidatr', 'spi41619364', 'da_prost0', 'tweet4jack', 'edixonve', 'chang8317', 'uptemplates', 'shapuillouwa', 'zhanglianghui', 'pizza_pizza3141', 'zelpresso', 'trumhemcut', 'yginting']
+            'HarmonyValidatr', 'spi41619364', 'da_prost0', 'tweet4jack', 'edixonve', 'chang8317', 'uptemplates', 'shapuillouwa', 'zhanglianghui', 'pizza_pizza3141', 'zelpresso', 'trumhemcut', 'yginting', 'nikolaoskost']
 
     def calculateRewards(self, sa_score):
         base = 12.5
@@ -430,6 +431,19 @@ class ScanAngelReTweet:
         if self.user_id == '' or self.user_id == None:
             print('Twitter user id error, script not started')
             return
+        url = f'https://api.twitter.com/1.1/statuses/show.json?id={tweet_id}'
+        contents = requests.get(url, headers=self.search_headers)
+        jsonResponse = contents.json()
+        if "error" in jsonResponse:
+            print(jsonResponse)
+        if 'created_at' in jsonResponse:
+            new_datetime = datetime.strftime(datetime.strptime(jsonResponse['created_at'],'%a %b %d %H:%M:%S +0000 %Y'), '%Y-%m-%d')
+            pow_tweet_info = {
+                'tweet_id' : tweet_id,
+                'tweet_date' : new_datetime,
+                'twitter_handle' : screen_name
+            }
+            self.dataStore.savePowTweetDetails(pow_tweet_info)
         self.sas_score_ids.clear()
         self.bot_score_ids.clear()
         self.startTweetScan(tweet_id, self.user_id, screen_name, query)
