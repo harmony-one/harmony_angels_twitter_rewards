@@ -7,8 +7,9 @@ class DataStoreFireBase:
     cred = None
     db = None
     tweetDataTableName = u'tweetData'
-    twitterScroreTableName = u'twitter_scores'    
+    twitterScroreTableName = u'twitter_scores'
     retweetsAndRepliesTableName = u'retweets_replies'
+    powTweetInfoTableName = u'pow_tweet_info'
 
     def __init__(self):   
         self.cred = credentials.Certificate('serviceAccountKey.json')
@@ -124,3 +125,16 @@ class DataStoreFireBase:
             return retweetsAndReplies
         else:
             return []
+
+    def savePowTweetDetails(self, powTweetData):
+        if powTweetData['tweet_id'] != None:
+            powTweetDataCollection = self.db.collection(self.powTweetInfoTableName)
+            doc_ref = powTweetDataCollection.where(u'tweet_id', u'==', powTweetData['tweet_id']).get()
+            if len(doc_ref) == 0:
+                #print(f" add {tweetData}")
+                powTweetDataCollection.document().set(powTweetData)
+            else:
+                #print(f"update {tweetData}")
+                for doc in doc_ref:
+                    #print(doc.id)
+                    powTweetDataCollection.document(doc.id).update(powTweetData)            
