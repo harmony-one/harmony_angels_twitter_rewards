@@ -1,42 +1,46 @@
 <div class="d-flex justify-content-center">
-<div class="card text-center">
+  <div class="card text-center">
     <div class="card-header">
       <h5 class="card-title">Harmony Angel's Twitter Rewards</h5>
     </div>
     <div class="card-body">
-        <div class="input-group mb-3">
-            <input matInput class="form-control" placeholder="Tweet Id" aria-label="Tweet Id" aria-describedby="basic-addon2" #txtTweetId value="{{tweetId}}">
-            <div class="input-group-append">
-              <button class="btn btn-outline-primary" type="button" (click)="getData(txtTweetId.value)" >Search</button>
-            </div>
-          </div>
-          <div class="">
-            <table class="table table-striped">
-                <thead>
-                  <tr>
-                    <th scope="col">Twitter Handle</th>
-                    <th scope="col">Name</th>
-                    <th scope="col">Bot Score</th>
-                    <th scope="col">Social Authority Score</th>
-                    <th scope="col">Engagement</th>
-                    <th scope="col">ONE Address</th>
-                    <th scope="col">Reward</th>
-                  </tr>
-                </thead>
-                <tbody>
-                    <tr *ngFor = "let tData of twitterData">
-                    <th scope="row">{{tData['angle_twitter_handle']}}</th>
-                    <td>{{tData['angel_name']}}</td>
-                    <td>{{tData['bot_score']}}</td>
-                    <td>{{tData['sa_score']}}</td>
-                    <td>{{tData['engagement']}}</td>
-                    <td>{{tData['angel_one_address']}}</td>
-                    <td>{{tData['reward']}}</td>
-                  </tr>
-                  
-                </tbody>
-              </table>
-          </div>
+      <div class="input-group mb-3">
+        <input matInput class="form-control" placeholder="Tweet Id" aria-label="Tweet Id"
+          aria-describedby="basic-addon2" #txtTweetId value="{{tweetId}}">
+        <div class="input-group-append">
+          <button class="btn btn-outline-primary" type="button" (click)="getData(txtTweetId.value)">Search</button>
+        </div>
+      </div>
+      <div class="input-group mb-3">
+        <div class="input-group-append">
+          <button class="btn btn-outline-primary" type="button" (click)="downloadFile()">Export(.csv)</button>
+        </div>
+      </div>
+      <div class="">
+        <table class="table table-striped">
+          <thead>
+            <tr>
+              <th scope="col">Twitter Handle</th>
+              <th scope="col">Bot Score</th>
+              <th scope="col">Social Authority Score</th>
+              <th scope="col">Engagement</th>
+              <th scope="col">ONE Address</th>
+              <th scope="col">Reward</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let tData of twitterData">
+              <th scope="row">{{tData['angle_twitter_handle']}}</th>
+              <td>{{tData['bot_score']}}</td>
+              <td>{{tData['sa_score']}}</td>
+              <td>{{tData['engagement']}}</td>
+              <td>{{tData['angel_one_address']}}</td>
+              <td>{{tData['reward']}}</td>
+            </tr>
+
+          </tbody>
+        </table>
+      </div>
     </div>
     <div class="card-footer text-muted">
       Harmony Protocol
