@@ -9,8 +9,9 @@ import {Router, ActivatedRoute, Params} from '@angular/router';
 })
 export class RewardsComponent implements OnInit {
 
-  twitterData;
+  twitterData : any;
   tweetId;
+  tweetDate;
   constructor(private rewardService : RewardService, private activatedRoute: ActivatedRoute) { }
 
   ngOnInit(): void {
@@ -22,14 +23,38 @@ export class RewardsComponent implements OnInit {
         console.log(this.tweetId);
       }
     });
-    
+
   }
     
   getData(tweetId: string){
     this.tweetId = tweetId;
     this.rewardService.getRewardsDetails(tweetId).subscribe(tData => {
-      console.log(tData);
       this.twitterData = tData;
-    })
+    });
+    this.rewardService.getTweetDate(this.tweetId).subscribe(data => {
+      this.tweetDate = data[0]['tweet_date'];
+    });
+  } 
+
+  downloadFile() {
+    const replacer = (key, value) => (value === null ? '' : value); // specify how you want to handle null values here
+    var csvArray = "from,to,amount,from-shard,to-shard,passphrase-file,passphrase-string,gas-price\n";
+    for(var i=0;i<this.twitterData.length;i++)
+    {
+      var to_address = this.twitterData[i]['angel_one_address'];
+      var amount = (Math.round(this.twitterData[i]['reward'] * 100) / 100).toFixed(2);;
+      csvArray = csvArray + "one1nskypwzgmh7ufud7ep0j4pyd2rvwwh0ukrvp77,"+to_address+","+amount+",0,0,,harmonaut,\n";
+    }
+  
+    const a = document.createElement('a');
+    const blob = new Blob([csvArray], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+  
+    a.href = url;
+    a.download = this.tweetDate + '-angelrewards.csv';
+    a.click();
+    window.URL.revokeObjectURL(url);
+    a.remove();
   }
+  
 }
