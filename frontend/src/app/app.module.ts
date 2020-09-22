@@ -1,14 +1,16 @@
 import { BrowserModule } from '@angular/platform-browser';
 import { NgModule } from '@angular/core';
-
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { RewardsComponent } from './rewards/rewards.component';
 import { RewardService } from './rewards/reward.service'
 import { environment } from "src/environments/environment";
 import { AngularFireModule } from "@angular/fire";
-import { AngularFireDatabaseModule } from '@angular/fire/database'
-import { AngularFirestoreModule } from '@angular/fire/firestore'
+import { AngularFireDatabaseModule } from '@angular/fire/database';
+import { AngularFirestoreModule } from '@angular/fire/firestore';
+import { HttpClientModule } from '@angular/common/http';
+
+
 import { from } from 'rxjs';
 
 @NgModule({
@@ -21,7 +23,8 @@ import { from } from 'rxjs';
     AppRoutingModule,
     AngularFireDatabaseModule,
     AngularFirestoreModule,
-    AngularFireModule.initializeApp(environment.firebaseConfig)
+    AngularFireModule.initializeApp(environment.firebaseConfig),
+    HttpClientModule
   ],
   providers: [ RewardService ],
   bootstrap: [AppComponent]
